@@ -2,6 +2,7 @@ using UnityEngine;
 #if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
 #endif
+using System;
 
 namespace StarterAssets
 {
@@ -12,6 +13,8 @@ namespace StarterAssets
 		public Vector2 look;
 		public bool jump;
 		public bool sprint;
+
+		public event Action OnInteractPerformed;
 
 		[Header("Movement Settings")]
 		public bool analogMovement;
@@ -42,6 +45,15 @@ namespace StarterAssets
 		public void OnSprint(InputValue value)
 		{
 			SprintInput(value.isPressed);
+		}
+
+		public void OnInteract(InputValue value)
+		{
+			if (value.isPressed)
+			{
+				Debug.Log("E key pressed - firing OnInteractPerformed");
+				OnInteractPerformed?.Invoke();
+			}
 		}
 #endif
 

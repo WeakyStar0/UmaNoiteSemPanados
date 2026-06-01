@@ -71,6 +71,7 @@ namespace StarterAssets
 		private CharacterController _controller;
 		private StarterAssetsInputs _input;
 		private GameObject _mainCamera;
+		private PickupManager _pickupManager;
 
 		private const float _threshold = 0.001f;
 
@@ -105,6 +106,18 @@ namespace StarterAssets
 			Debug.LogError( "Starter Assets package is missing dependencies. Please use Tools/Starter Assets/Reinstall Dependencies to fix it");
 #endif
 
+			_pickupManager = GetComponent<PickupManager>();
+			if (_pickupManager != null && _input != null)
+			{
+				_input.OnInteractPerformed += _pickupManager.TryPickup;
+				Debug.Log("PickupManager hooked to input");
+			}
+			else
+			{
+				if (_pickupManager == null) Debug.LogError("PickupManager not found on Player!");
+				if (_input == null) Debug.LogError("StarterAssetsInputs not found on Player!");
+			}
+
 			// reset our timeouts on start
 			_jumpTimeoutDelta = JumpTimeout;
 			_fallTimeoutDelta = FallTimeout;
@@ -115,6 +128,18 @@ namespace StarterAssets
 			JumpAndGravity();
 			GroundedCheck();
 			Move();
+			HandleItemCycling();
+		}
+
+		private void HandleItemCycling()
+		{
+#if ENABLE_INPUT_SYSTEM
+			float scroll = Mouse.current.scroll.y.ReadValue();
+			if (scroll > 0f)
+				Inventory.Instance.SelectNext();
+			else if (scroll < 0f)
+				Inventory.Instance.SelectPrev();
+#endif
 		}
 
 		private void LateUpdate()
