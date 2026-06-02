@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class ItemHolder : MonoBehaviour
 {
@@ -6,9 +7,16 @@ public class ItemHolder : MonoBehaviour
     [SerializeField] private Transform itemHandPos;
     [SerializeField] private Vector3 inventoryCornerOffset = new Vector3(-0.3f, -0.4f, 0.6f);
 
+    [Header("Draw Animation")]
+    [SerializeField] private Vector3 drawInOffset = new Vector3(0.25f, -0.35f, 0f);
+    [SerializeField] private float drawInDuration = 0.35f;
+    [SerializeField] private float drawInOvershoot = 1.8f;
+
     private GameObject heldItemModel;
     private Item currentItem;
     private bool isInHand = false;
+    private bool isDrawing = false;
+    private float drawStartTime;
 
     void Start()
     {
@@ -20,10 +28,14 @@ public class ItemHolder : MonoBehaviour
     {
         SyncWithInventory();
 
+        if (currentItem != null && Mouse.current.leftButton.wasPressedThisFrame)
+            currentItem.OnUse();
+
+        if (currentItem != null && Keyboard.current.eKey.wasPressedThisFrame)
+            currentItem.OnInteract();
+
         if (heldItemModel != null && isInHand && itemHandPos != null)
-        {
             UpdateHandPosition();
-        }
     }
 
     void SyncWithInventory()
@@ -48,10 +60,21 @@ public class ItemHolder : MonoBehaviour
 
         if (item.ModelPrefab == null) return;
 
-        heldItemModel = Instantiate(item.ModelPrefab, itemHandPos);
-        DisablePhysics(heldItemModel);
+        GameObject pivot = new GameObject("ItemPivot");
+        pivot.transform.SetParent(itemHandPos);
+
+        GameObject modelInstance = Instantiate(item.ModelPrefab, pivot.transform);
+        modelInstance.transform.localPosition = Vector3.zero;
+        modelInstance.transform.localRotation = Quaternion.identity;
+        modelInstance.transform.localScale = Vector3.one;
+
+        heldItemModel = pivot;
+        DisablePhysics(modelInstance);
+        item.OnModelSpawned(modelInstance);
 
         isInHand = true;
+        isDrawing = true;
+        drawStartTime = Time.time;
         UpdateHandPosition();
     }
 
@@ -88,9 +111,26 @@ public class ItemHolder : MonoBehaviour
         Vector3 rotOffset = (currentItem.DebugRotationOffset != Vector3.zero) ? currentItem.DebugRotationOffset : currentItem.HandRotationOffset;
         Vector3 scaleOffset = (currentItem.DebugScaleOffset != Vector3.one) ? currentItem.DebugScaleOffset : currentItem.HandScaleOffset;
 
-        heldItemModel.transform.localPosition = posOffset;
+        if (isDrawing)
+        {
+            float t = Mathf.Clamp01((Time.time - drawStartTime) / drawInDuration);
+            if (t >= 1f) isDrawing = false;
+            float ease = EaseOutBack(t, drawInOvershoot);
+            heldItemModel.transform.localPosition = Vector3.LerpUnclamped(posOffset + drawInOffset, posOffset, ease);
+        }
+        else
+        {
+            heldItemModel.transform.localPosition = posOffset;
+        }
+
         heldItemModel.transform.localRotation = Quaternion.Euler(rotOffset);
         heldItemModel.transform.localScale = scaleOffset;
+    }
+
+    float EaseOutBack(float t, float overshoot)
+    {
+        float c3 = overshoot + 1f;
+        return 1f + c3 * Mathf.Pow(t - 1f, 3f) + overshoot * Mathf.Pow(t - 1f, 2f);
     }
 
     void HideItem()
@@ -112,6 +152,6 @@ public class ItemHolder : MonoBehaviour
         if (rb != null) rb.isKinematic = true;
     }
 
-    public Item GetCurrentItem() => currentItem;
+public Item GetCurrentItem() => currentItem;
     public bool IsInHand => isInHand;
 }

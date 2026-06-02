@@ -11,6 +11,11 @@ public class Item : MonoBehaviour
     [SerializeField] private Vector3 handRotationOffset = Vector3.zero;
     [SerializeField] private Vector3 handScaleOffset = Vector3.one;
 
+    [Header("Hotbar Preview")]
+    [SerializeField] private Vector3 hotbarPositionOffset = Vector3.zero;
+    [SerializeField] private Vector3 hotbarRotationOffset = Vector3.zero;
+    [SerializeField] private Vector3 hotbarScaleOffset = Vector3.one;
+
     [Header("Debug - Adjust while playing")]
     [SerializeField] private Vector3 debugPositionOffset = Vector3.zero;
     [SerializeField] private Vector3 debugRotationOffset = Vector3.zero;
@@ -19,6 +24,9 @@ public class Item : MonoBehaviour
     public string ItemID => itemID;
     public string DisplayName => displayName;
     public GameObject ModelPrefab => modelPrefab;
+    public Vector3 HotbarPositionOffset => hotbarPositionOffset;
+    public Vector3 HotbarRotationOffset => hotbarRotationOffset;
+    public Vector3 HotbarScaleOffset => hotbarScaleOffset;
     public Vector3 HandPositionOffset => handPositionOffset;
     public Vector3 HandRotationOffset => handRotationOffset;
     public Vector3 HandScaleOffset => handScaleOffset;
@@ -26,9 +34,10 @@ public class Item : MonoBehaviour
     public Vector3 DebugRotationOffset => debugRotationOffset;
     public Vector3 DebugScaleOffset => debugScaleOffset;
 
-    public virtual void OnPickup()
-    {
-    }
+    public virtual void OnPickup() { }
+    public virtual void OnModelSpawned(GameObject model) { }
+    public virtual void OnUse() { }
+    public virtual void OnInteract() { }
 
     void OnDrawGizmosSelected()
     {

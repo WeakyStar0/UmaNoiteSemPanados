@@ -5,6 +5,9 @@ public class Inventory : MonoBehaviour
 {
     public static Inventory Instance { get; private set; }
 
+    public event System.Action OnChanged;
+    public int SelectedIndex => selectedIndex;
+
     private List<Item> items = new List<Item>();
     private int selectedIndex = -1;
     private const int MaxSlots = 4;
@@ -28,6 +31,8 @@ public class Inventory : MonoBehaviour
 
         if (selectedIndex == -1)
             SelectItem(0);
+        else
+            OnChanged?.Invoke();
     }
 
     public void Remove(Item item)
@@ -37,6 +42,7 @@ public class Inventory : MonoBehaviour
             selectedIndex = -1;
         else if (selectedIndex >= items.Count)
             selectedIndex = items.Count - 1;
+        OnChanged?.Invoke();
     }
 
     public List<Item> GetAll()
@@ -59,21 +65,24 @@ public class Inventory : MonoBehaviour
     public void SelectItem(int index)
     {
         if (index >= 0 && index < items.Count)
+        {
             selectedIndex = index;
+            OnChanged?.Invoke();
+        }
     }
 
     public void SelectNext()
     {
         if (items.Count == 0) return;
-        selectedIndex = (selectedIndex + 1) % items.Count;
-        Debug.Log($"Selected item {selectedIndex}: {items[selectedIndex].DisplayName}");
+        selectedIndex = selectedIndex >= items.Count - 1 ? -1 : selectedIndex + 1;
+        OnChanged?.Invoke();
     }
 
     public void SelectPrev()
     {
         if (items.Count == 0) return;
-        selectedIndex = (selectedIndex - 1 + items.Count) % items.Count;
-        Debug.Log($"Selected item {selectedIndex}: {items[selectedIndex].DisplayName}");
+        selectedIndex = selectedIndex <= -1 ? items.Count - 1 : selectedIndex - 1;
+        OnChanged?.Invoke();
     }
 }
 
