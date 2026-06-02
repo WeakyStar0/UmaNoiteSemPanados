@@ -51,6 +51,10 @@ public class PickupManager : MonoBehaviour
 
         Item itemToPickup = hoveredItem;
         reticleUI.HidePickup();
+
+        Outline outline = itemToPickup.GetComponent<Outline>();
+        if (outline != null) outline.enabled = false;
+
         hoveredItem = null;
 
         Collider col = itemToPickup.GetComponent<Collider>();

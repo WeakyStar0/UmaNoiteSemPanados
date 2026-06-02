@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Rendering;
 
 public class ItemHolder : MonoBehaviour
 {
@@ -33,6 +34,9 @@ public class ItemHolder : MonoBehaviour
 
         if (currentItem != null && Keyboard.current.eKey.wasPressedThisFrame)
             currentItem.OnInteract();
+
+        if (currentItem != null && currentItem.Droppable && Keyboard.current.qKey.wasPressedThisFrame)
+            DropCurrentItem();
 
         if (heldItemModel != null && isInHand && itemHandPos != null)
             UpdateHandPosition();
@@ -71,6 +75,9 @@ public class ItemHolder : MonoBehaviour
         heldItemModel = pivot;
         DisablePhysics(modelInstance);
         item.OnModelSpawned(modelInstance);
+
+        foreach (Renderer r in modelInstance.GetComponentsInChildren<Renderer>())
+            r.shadowCastingMode = ShadowCastingMode.Off;
 
         isInHand = true;
         isDrawing = true;
@@ -131,6 +138,21 @@ public class ItemHolder : MonoBehaviour
     {
         float c3 = overshoot + 1f;
         return 1f + c3 * Mathf.Pow(t - 1f, 3f) + overshoot * Mathf.Pow(t - 1f, 2f);
+    }
+
+    void DropCurrentItem()
+    {
+        Item item = currentItem;
+        HideItem();
+        Inventory.Instance.Remove(item);
+
+        Transform cam = Camera.main.transform;
+        CharacterController cc = cam.root.GetComponent<CharacterController>();
+        Vector3 playerVel = cc != null ? cc.velocity : Vector3.zero;
+        Vector3 spawnPos = cam.position + cam.forward * 0.6f + Vector3.down * 0.2f;
+        Vector3 velocity = playerVel + cam.forward * 2f + Vector3.up * 1f;
+
+        item.Drop(spawnPos, velocity);
     }
 
     void HideItem()
