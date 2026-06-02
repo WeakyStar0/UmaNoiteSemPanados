@@ -105,3 +105,13 @@ InitTestScene*.unity*
 
 # Auto-generated scenes by play mode tests
 /[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
+
+# Asset Store packages — re-download from Unity Asset Store
+/Assets/Brick Project Studio/
+/Assets/Brick Project Studio.meta
+/Assets/YughuesFreeConcreteMaterials/
+/Assets/YughuesFreeConcreteMaterials.meta
+/Assets/YughuesFreeFlooringMaterials/
+/Assets/YughuesFreeFlooringMaterials.meta
+/Assets/UI pack/
+/Assets/UI pack.meta

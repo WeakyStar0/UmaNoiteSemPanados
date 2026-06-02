@@ -61,4 +61,5 @@ public class SettingsUI : MonoBehaviour
     
     public void ApplySettings() => SettingsManager.Instance.ApplySettings();
     public void SaveSettings() => SettingsManager.Instance.SaveSettings();
+    public void Back() => PauseManager.Instance.CloseSettings();
 }

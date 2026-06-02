@@ -4,6 +4,7 @@ public class PickupManager : MonoBehaviour
 {
     [SerializeField] private Camera mainCamera;
     [SerializeField] private float pickupRange = 5f;
+    [SerializeField] private float detectionRadius = 0.1f;
     [SerializeField] private ReticleUI reticleUI;
     [SerializeField] private ItemHolder itemHolder;
 
@@ -17,7 +18,7 @@ public class PickupManager : MonoBehaviour
     void RaycastForItems()
     {
         Ray ray = new Ray(mainCamera.transform.position, mainCamera.transform.forward);
-        bool hitItem = Physics.Raycast(ray, out RaycastHit hit, pickupRange);
+        bool hitItem = Physics.SphereCast(ray, detectionRadius, out RaycastHit hit, pickupRange);
 
         if (hitItem && hit.collider.CompareTag("Pickable"))
         {
@@ -68,12 +69,12 @@ public class PickupManager : MonoBehaviour
     {
         if (mainCamera == null) return;
 
-        Ray ray = new Ray(mainCamera.transform.position, mainCamera.transform.forward);
+        Vector3 origin = mainCamera.transform.position;
+        Vector3 end = origin + mainCamera.transform.forward * pickupRange;
 
         Gizmos.color = Color.green;
-        Gizmos.DrawRay(ray.origin, ray.direction * pickupRange);
-
-        Gizmos.color = Color.cyan;
-        Gizmos.DrawWireSphere(mainCamera.transform.position + mainCamera.transform.forward * pickupRange, 0.2f);
+        Gizmos.DrawWireSphere(origin, detectionRadius);
+        Gizmos.DrawLine(origin, end);
+        Gizmos.DrawWireSphere(end, detectionRadius);
     }
 }

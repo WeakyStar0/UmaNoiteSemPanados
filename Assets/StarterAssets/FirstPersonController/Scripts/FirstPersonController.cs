@@ -63,6 +63,8 @@ namespace StarterAssets
 		// timeout deltatime
 		private float _jumpTimeoutDelta;
 		private float _fallTimeoutDelta;
+		private float _lastScrollTime = -Mathf.Infinity;
+		private const float _scrollCooldown = 0.1f;
 
 	
 #if ENABLE_INPUT_SYSTEM
@@ -135,10 +137,14 @@ namespace StarterAssets
 		{
 #if ENABLE_INPUT_SYSTEM
 			float scroll = Mouse.current.scroll.y.ReadValue();
-			if (scroll > 0f)
-				Inventory.Instance.SelectNext();
-			else if (scroll < 0f)
-				Inventory.Instance.SelectPrev();
+			if (scroll != 0f && Time.time - _lastScrollTime >= _scrollCooldown)
+			{
+				_lastScrollTime = Time.time;
+				if (scroll > 0f)
+					Inventory.Instance.SelectNext();
+				else
+					Inventory.Instance.SelectPrev();
+			}
 #endif
 		}
 
