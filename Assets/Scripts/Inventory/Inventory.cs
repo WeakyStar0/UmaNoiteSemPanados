@@ -7,10 +7,14 @@ public class Inventory : MonoBehaviour
 
     public event System.Action OnChanged;
     public int SelectedIndex => selectedIndex;
+    public bool IsFull => items.Count >= maxSlots;
+
+    public void SetMaxSlots(int count) { maxSlots = count; }
+
+    private int maxSlots = 4;
 
     private List<Item> items = new List<Item>();
     private int selectedIndex = -1;
-    private const int MaxSlots = 4;
 
     void Awake()
     {
@@ -21,7 +25,7 @@ public class Inventory : MonoBehaviour
 
     public void Add(Item item)
     {
-        if (items.Count >= MaxSlots)
+        if (items.Count >= maxSlots)
         {
             Debug.LogWarning("Inventory full!");
             return;

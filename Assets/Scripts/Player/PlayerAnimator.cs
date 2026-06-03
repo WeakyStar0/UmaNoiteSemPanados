@@ -1,11 +1,13 @@
 using UnityEngine;
 using UnityEngine.Rendering;
+using StarterAssets;
 
 public class PlayerAnimator : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private Animator animator;
     [SerializeField] private CharacterController characterController;
+    [SerializeField] private FirstPersonController fpc;
 
     [Header("Speed Thresholds")]
     [SerializeField] private float walkThreshold = 0.1f;
@@ -26,6 +28,8 @@ public class PlayerAnimator : MonoBehaviour
 
     private static readonly int VelocityXHash = Animator.StringToHash("VelocityX");
     private static readonly int VelocityZHash = Animator.StringToHash("VelocityZ");
+    private static readonly int SpeedHash = Animator.StringToHash("Speed");
+    private static readonly int IsCrouchingHash = Animator.StringToHash("IsCrouching");
 
     void Start()
     {
@@ -42,8 +46,11 @@ public class PlayerAnimator : MonoBehaviour
         if (Mathf.Abs(vx) < walkThreshold / runThreshold) vx = 0f;
         if (Mathf.Abs(vz) < walkThreshold / runThreshold) vz = 0f;
 
+        float speed = new Vector3(characterController.velocity.x, 0f, characterController.velocity.z).magnitude / runThreshold;
         animator.SetFloat(VelocityXHash, vx, dampTime, Time.deltaTime);
         animator.SetFloat(VelocityZHash, vz, dampTime, Time.deltaTime);
+        animator.SetFloat(SpeedHash, speed, dampTime, Time.deltaTime);
+        animator.SetBool(IsCrouchingHash, fpc != null && fpc.IsCrouching);
 
         if (handBone != null)
             SyncShadowHand();

@@ -6,6 +6,12 @@ public class DroppedPickable : MonoBehaviour
     private bool grounded;
     private Rigidbody rb;
     private const float cooldown = 0.3f;
+    private const float settleStartSpeed = 1.5f;
+    private const float settleEndSpeed = 0.04f;
+    private const float maxSettleTime = 4f;
+    private const float dragRampSpeed = 18f;
+    private const float initialAngularDamping = 6f;
+    private const float maxAngularDamping = 20f;
 
     void Start()
     {
@@ -16,17 +22,18 @@ public class DroppedPickable : MonoBehaviour
     void Update()
     {
         if (!grounded) return;
-        if (Time.time - dropTime < cooldown) return;
 
-        gameObject.tag = "Pickable";
-        Destroy(this);
-    }
+        float elapsed = Time.time - dropTime;
+        float speed = rb != null ? rb.linearVelocity.magnitude : 0f;
 
-    void OnCollisionEnter(Collision collision)
-    {
-        if (collision.gameObject.layer != LayerMask.NameToLayer("Floor")) return;
-        if (grounded) return;
-        grounded = true;
+        if (rb != null && speed < settleStartSpeed)
+            rb.angularDamping = Mathf.MoveTowards(rb.angularDamping, maxAngularDamping, Time.deltaTime * dragRampSpeed);
+
+        bool settled = rb == null || speed < settleEndSpeed;
+        bool timedOut = elapsed > maxSettleTime;
+
+        if (!settled && !timedOut) return;
+        if (elapsed < cooldown) return;
 
         if (rb != null)
         {
@@ -34,5 +41,16 @@ public class DroppedPickable : MonoBehaviour
             rb.angularVelocity = Vector3.zero;
             rb.isKinematic = true;
         }
+
+        gameObject.tag = "Pickable";
+        Destroy(this);
+    }
+
+    void OnCollisionEnter(Collision collision)
+    {
+        int layer = collision.gameObject.layer;
+        if (layer != LayerMask.NameToLayer("Floor") && layer != LayerMask.NameToLayer("Furniture")) return;
+        grounded = true;
+        if (rb != null) rb.angularDamping = initialAngularDamping;
     }
 }

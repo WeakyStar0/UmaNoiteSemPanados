@@ -52,6 +52,7 @@ public class Item : MonoBehaviour
     public virtual void OnModelSpawned(GameObject model) { }
     public virtual void OnUse() { }
     public virtual void OnInteract() { }
+    public virtual void OnDrop() { }
 
     public void Drop(Vector3 position, Vector3 velocity)
     {
@@ -101,6 +102,7 @@ public class Item : MonoBehaviour
         }
 
         gameObject.AddComponent<DroppedPickable>();
+        OnDrop();
     }
 
     void OnDrawGizmosSelected()

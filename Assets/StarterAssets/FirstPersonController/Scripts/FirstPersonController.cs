@@ -51,6 +51,17 @@ namespace StarterAssets
 		[Tooltip("How far in degrees can you move the camera down")]
 		public float BottomClamp = -90.0f;
 
+		[Header("Crouch")]
+		public float CrouchMoveSpeed = 1.8f;
+		public float StandHeight = 1.8f;
+		public float CrouchHeight = 1.0f;
+		public float StandCamY = 1.375f;
+		public float CrouchCamY = 0.7f;
+		public float CrouchTransitionSpeed = 10f;
+
+		public static FirstPersonController Instance { get; private set; }
+		public bool IsCrouching { get; private set; }
+
 		// cinemachine
 		private float _cinemachineTargetPitch;
 
@@ -59,6 +70,10 @@ namespace StarterAssets
 		private float _rotationVelocity;
 		private float _verticalVelocity;
 		private float _terminalVelocity = 53.0f;
+
+		// crouch
+		private float _targetHeight;
+		private float _targetCamY;
 
 		// timeout deltatime
 		private float _jumpTimeoutDelta;
@@ -91,11 +106,11 @@ namespace StarterAssets
 
 		private void Awake()
 		{
-			// get a reference to our main camera
+			Instance = this;
 			if (_mainCamera == null)
-			{
 				_mainCamera = GameObject.FindGameObjectWithTag("MainCamera");
-			}
+			_targetHeight = StandHeight;
+			_targetCamY = StandCamY;
 		}
 
 		private void Start()
@@ -130,6 +145,7 @@ namespace StarterAssets
 			JumpAndGravity();
 			GroundedCheck();
 			Move();
+			HandleCrouch();
 			HandleItemCycling();
 		}
 
@@ -185,7 +201,9 @@ namespace StarterAssets
 		private void Move()
 		{
 			// set target speed based on move speed, sprint speed and if sprint is pressed
-			float targetSpeed = _input.sprint ? SprintSpeed : MoveSpeed;
+			float targetSpeed = IsCrouching ? CrouchMoveSpeed
+			                  : _input.sprint ? SprintSpeed
+			                  : MoveSpeed;
 
 			// a simplistic acceleration and deceleration designed to be easy to remove, replace, or iterate upon
 
@@ -274,6 +292,42 @@ namespace StarterAssets
 			if (_verticalVelocity < _terminalVelocity)
 			{
 				_verticalVelocity += Gravity * Time.deltaTime;
+			}
+		}
+
+		private void HandleCrouch()
+		{
+#if ENABLE_INPUT_SYSTEM
+			if (Keyboard.current != null && Keyboard.current.leftCtrlKey.wasPressedThisFrame)
+				TryToggleCrouch();
+#endif
+			float h = Mathf.Lerp(_controller.height, _targetHeight, Time.deltaTime * CrouchTransitionSpeed);
+			_controller.height = h;
+			_controller.center = new Vector3(0f, h / 2f, 0f);
+
+			if (CinemachineCameraTarget != null)
+			{
+				Vector3 pos = CinemachineCameraTarget.transform.localPosition;
+				pos.y = Mathf.Lerp(pos.y, _targetCamY, Time.deltaTime * CrouchTransitionSpeed);
+				CinemachineCameraTarget.transform.localPosition = pos;
+			}
+		}
+
+		private void TryToggleCrouch()
+		{
+			if (IsCrouching)
+			{
+				Vector3 castOrigin = transform.position + Vector3.up * CrouchHeight;
+				if (Physics.Raycast(castOrigin, Vector3.up, StandHeight - CrouchHeight)) return;
+				IsCrouching = false;
+				_targetHeight = StandHeight;
+				_targetCamY = StandCamY;
+			}
+			else
+			{
+				IsCrouching = true;
+				_targetHeight = CrouchHeight;
+				_targetCamY = CrouchCamY;
 			}
 		}
 

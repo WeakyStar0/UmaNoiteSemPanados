@@ -4,6 +4,8 @@ public class Flashlight : Item
 {
     [SerializeField] private string emissiveObjectName = "Emissive";
     [SerializeField] private bool startOn = false;
+    [Header("Drop")]
+    [SerializeField] private Light worldLight;
     [SerializeField] private float toggleCooldown = 0.3f;
     [SerializeField] private AudioClip onSound;
     [SerializeField] private AudioClip offSound;
@@ -51,6 +53,11 @@ public class Flashlight : Item
         if (spotLight != null) spotLight.enabled = isOn;
         if (emissiveRenderer != null) emissiveRenderer.enabled = isOn;
         if (spotLight != null) lastModelPosition = spotLight.transform.position;
+    }
+
+    public override void OnDrop()
+    {
+        if (worldLight != null) worldLight.enabled = isOn;
     }
 
     Transform FindChildByName(Transform parent, string name)

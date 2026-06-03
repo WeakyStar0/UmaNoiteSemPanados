@@ -25,12 +25,20 @@ public class PickupManager : MonoBehaviour
             Item item = hit.collider.GetComponent<Item>();
             if (item != null && item != hoveredItem)
             {
+                if (hoveredItem != null)
+                {
+                    Outline oldOutline = hoveredItem.GetComponent<Outline>();
+                    if (oldOutline != null) oldOutline.enabled = false;
+                }
+
                 hoveredItem = item;
-                reticleUI.ShowPickup(item.DisplayName);
 
                 Outline outline = item.GetComponent<Outline>();
                 if (outline != null) outline.enabled = true;
             }
+
+            if (hoveredItem != null)
+                reticleUI.ShowPickup(Inventory.Instance.IsFull ? "Inventory Full" : hoveredItem.DisplayName);
         }
         else
         {
@@ -48,6 +56,7 @@ public class PickupManager : MonoBehaviour
     public void TryPickup()
     {
         if (hoveredItem == null) return;
+        if (Inventory.Instance.IsFull) return;
 
         Item itemToPickup = hoveredItem;
         reticleUI.HidePickup();

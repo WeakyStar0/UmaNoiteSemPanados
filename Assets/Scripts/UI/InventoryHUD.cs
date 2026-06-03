@@ -13,19 +13,21 @@ public class InventoryHUD : MonoBehaviour
         public Camera previewCamera;
     }
 
-    [SerializeField] private InventorySlot[] slots = new InventorySlot[4];
+    [SerializeField] private InventorySlot[] slots;
     [SerializeField] private string previewLayerName = "ItemPreview";
 
     private int previewLayer;
-    private GameObject[] spawnedModels = new GameObject[4];
+    private GameObject[] spawnedModels;
 
     void Awake()
     {
         previewLayer = LayerMask.NameToLayer(previewLayerName);
+        spawnedModels = new GameObject[slots.Length];
     }
 
     void Start()
     {
+        Inventory.Instance.SetMaxSlots(slots.Length);
         Inventory.Instance.OnChanged += RefreshHUD;
         RefreshHUD();
     }

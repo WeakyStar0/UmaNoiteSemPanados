@@ -1,6 +1,7 @@
 using UnityEngine;
 using StarterAssets;
 
+
 public class StaminaSystem : MonoBehaviour
 {
     public static StaminaSystem Instance { get; private set; }
@@ -35,6 +36,7 @@ public class StaminaSystem : MonoBehaviour
     void Update()
     {
         if (IsExhausted) inputs.sprint = false;
+        if (FirstPersonController.Instance != null && FirstPersonController.Instance.IsCrouching) inputs.sprint = false;
 
         float horizontalSpeed = new Vector3(characterController.velocity.x, 0f, characterController.velocity.z).magnitude;
         bool actuallysprinting = inputs.sprint && horizontalSpeed > 0.1f && characterController.isGrounded;
