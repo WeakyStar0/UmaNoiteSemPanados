@@ -20,6 +20,13 @@ public class ReticleUI : MonoBehaviour
         pickupText.text = $"[E] Pick Up {itemName}";
     }
 
+    public void ShowHint(string text)
+    {
+        reticleImage.enabled = true;
+        pickupText.enabled = true;
+        pickupText.text = text;
+    }
+
     public void HidePickup()
     {
         Debug.Log("HidePickup called");

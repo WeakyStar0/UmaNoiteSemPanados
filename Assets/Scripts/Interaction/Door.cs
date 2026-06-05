@@ -85,7 +85,8 @@ public class Door : MonoBehaviour
                 lockedText.gameObject.SetActive(false);
         }
 
-        bool eKey = Keyboard.current.eKey.wasPressedThisFrame;
+        bool paused = PauseManager.Instance != null && (PauseManager.Instance.IsPaused || PauseManager.Instance.IsJustResumed);
+        bool eKey = !paused && Keyboard.current.eKey.wasPressedThisFrame;
 
         if (eKey && IsPlayerLookingAtDoor() && Time.time - lastInteractTime >= interactCooldown)
         {

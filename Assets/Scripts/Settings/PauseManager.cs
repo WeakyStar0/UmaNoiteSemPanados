@@ -13,6 +13,10 @@ public class PauseManager : MonoBehaviour
 
     private bool isPaused = false;
     private bool isInSettings = false;
+    private int _resumedFrame = -1;
+
+    public bool IsPaused => isPaused;
+    public bool IsJustResumed => Time.frameCount == _resumedFrame;
 
     void Awake() => Instance = this;
 
@@ -51,6 +55,7 @@ public class PauseManager : MonoBehaviour
         {
             LockCursor();
             playerInput.ActivateInput();
+            _resumedFrame = Time.frameCount;
         }
     }
 

@@ -50,12 +50,17 @@ namespace StarterAssets
 		public float TopClamp = 90.0f;
 		[Tooltip("How far in degrees can you move the camera down")]
 		public float BottomClamp = -90.0f;
+		[Tooltip("How many degrees past the limit the player can push before absolute hard stop")]
+		public float ClampOvershoot = 25f;
+		[Tooltip("How strongly the camera springs back to the limit (higher = snappier)")]
+		public float ClampSpringSpeed = 8f;
 
 		[Header("Crouch")]
 		public float CrouchMoveSpeed = 1.8f;
-		public float StandHeight = 1.8f;
+		[HideInInspector] public float StandHeight;
 		public float CrouchHeight = 1.0f;
-		public float StandCamY = 1.375f;
+		[HideInInspector] public float StandRadius;
+		[HideInInspector] public float StandCamY;
 		public float CrouchCamY = 0.7f;
 		public float CrouchTransitionSpeed = 10f;
 
@@ -109,13 +114,20 @@ namespace StarterAssets
 			Instance = this;
 			if (_mainCamera == null)
 				_mainCamera = GameObject.FindGameObjectWithTag("MainCamera");
+
+			_controller = GetComponent<CharacterController>();
+			StandHeight = _controller.height;
+			StandRadius = _controller.radius;
+
+			if (CinemachineCameraTarget != null)
+				StandCamY = CinemachineCameraTarget.transform.localPosition.y;
+
 			_targetHeight = StandHeight;
 			_targetCamY = StandCamY;
 		}
 
 		private void Start()
 		{
-			_controller = GetComponent<CharacterController>();
 			_input = GetComponent<StarterAssetsInputs>();
 #if ENABLE_INPUT_SYSTEM
 			_playerInput = GetComponent<PlayerInput>();
@@ -178,24 +190,22 @@ namespace StarterAssets
 
 		private void CameraRotation()
 		{
-			// if there is an input
 			if (_input.look.sqrMagnitude >= _threshold)
 			{
-				//Don't multiply mouse input by Time.deltaTime
 				float deltaTimeMultiplier = IsCurrentDeviceMouse ? 1.0f : Time.deltaTime;
-				
 				_cinemachineTargetPitch += _input.look.y * RotationSpeed * deltaTimeMultiplier;
 				_rotationVelocity = _input.look.x * RotationSpeed * deltaTimeMultiplier;
-
-				// clamp our pitch rotation
-				_cinemachineTargetPitch = ClampAngle(_cinemachineTargetPitch, BottomClamp, TopClamp);
-
-				// Update Cinemachine camera target pitch
-				CinemachineCameraTarget.transform.localRotation = Quaternion.Euler(_cinemachineTargetPitch, 0.0f, 0.0f);
-
-				// rotate the player left and right
 				transform.Rotate(Vector3.up * _rotationVelocity);
 			}
+
+			// absolute hard stop far past limit to prevent runaway
+			_cinemachineTargetPitch = Mathf.Clamp(_cinemachineTargetPitch, BottomClamp - ClampOvershoot, TopClamp + ClampOvershoot);
+
+			// spring toward limit — player can break it but it always pulls back
+			float clampedTarget = Mathf.Clamp(_cinemachineTargetPitch, BottomClamp, TopClamp);
+			_cinemachineTargetPitch = Mathf.Lerp(_cinemachineTargetPitch, clampedTarget, Time.deltaTime * ClampSpringSpeed);
+
+			CinemachineCameraTarget.transform.localRotation = Quaternion.Euler(_cinemachineTargetPitch, 0.0f, 0.0f);
 		}
 
 		private void Move()

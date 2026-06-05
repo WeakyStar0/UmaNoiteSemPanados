@@ -29,14 +29,18 @@ public class ItemHolder : MonoBehaviour
     {
         SyncWithInventory();
 
-        if (currentItem != null && Mouse.current.leftButton.wasPressedThisFrame)
-            currentItem.OnUse();
+        bool blocked = PauseManager.Instance != null && (PauseManager.Instance.IsPaused || PauseManager.Instance.IsJustResumed);
+        if (!blocked)
+        {
+            if (currentItem != null && Mouse.current.leftButton.wasPressedThisFrame)
+                currentItem.OnUse();
 
-        if (currentItem != null && Keyboard.current.eKey.wasPressedThisFrame)
-            currentItem.OnInteract();
+            if (currentItem != null && Keyboard.current.eKey.wasPressedThisFrame)
+                currentItem.OnInteract();
 
-        if (currentItem != null && currentItem.Droppable && Keyboard.current.qKey.wasPressedThisFrame)
-            DropCurrentItem();
+            if (currentItem != null && currentItem.Droppable && Keyboard.current.qKey.wasPressedThisFrame)
+                DropCurrentItem();
+        }
 
         if (heldItemModel != null && isInHand && itemHandPos != null)
             UpdateHandPosition();
